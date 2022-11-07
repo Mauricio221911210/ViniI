@@ -8,7 +8,16 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import com.google.gson.Gson
 import com.joduma.prueba.R
+import com.joduma.prueba.activities.activities.client.home.ClientHomeActivity
+import com.joduma.prueba.activities.models.ResponseHttp
+import com.joduma.prueba.activities.models.User
+import com.joduma.prueba.activities.providers.UsersProvider
+import com.joduma.prueba.activities.utils.SharedPref
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     var editTextUsername: EditText? = null
     var editTextPassword: EditText? = null
     var buttonLogin: Button? = null
+    var usersProvider = UsersProvider()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,16 +50,58 @@ class MainActivity : AppCompatActivity() {
         val username = editTextUsername?.text.toString() // NULL POINTER EXCEPTION
         val password = editTextPassword?.text.toString()
 
+
         if (isValidForm(username, password)) {
-            Toast.makeText(this, "El formulario es valido", Toast.LENGTH_LONG).show()
+
+            usersProvider.login(username, password)?.enqueue(object : Callback <ResponseHttp>{
+                override fun onResponse(call: Call<ResponseHttp>, response: Response<ResponseHttp>
+                ) {
+                    Log.d("MainActivity", "Response: ${response.body()}")
+
+                    if (response.body()?.issuccess == true){
+                        Toast.makeText(this@MainActivity, response.body()?.message, Toast.LENGTH_LONG).show()
+                        saveUserInSession(response.body()?.data.toString())
+                        goToClientHome()
+                    }
+                    else {
+                        Toast.makeText( this@MainActivity, "Los datos no son correctos", Toast.LENGTH_LONG).show()
+                    }
+
+
+                }
+
+                override fun onFailure(call: Call<ResponseHttp>, t: Throwable) {
+                    Log.d("MainActivity", "Hubo un error ${t.message}")
+                    Toast.makeText(this@MainActivity, "Hubo un error ${t.message}",Toast.LENGTH_LONG).show()
+
+                }
+
+            })
+
+            /*Toast.makeText(this, "El formulario es valido", Toast.LENGTH_LONG).show()*/
         }
         else {
             Toast.makeText(this, "No es valido", Toast.LENGTH_LONG).show()
         }
 
-        Log.d("MainActivity", "El username es: $username")
-        Log.d("MainActivity", "El password es: $password")
+       /* Log.d("MainActivity", "El username es: $username")
+        Log.d("MainActivity", "El password es: $password")*/
     }
+
+    private fun goToClientHome(){
+        val i = Intent(this, ClientHomeActivity::class.java)
+        startActivity(i)
+    }
+
+
+    private fun saveUserInSession(data: String) {
+        val sharedPref = SharedPref(this)
+        val gson = Gson()
+        val user = gson.fromJson(data, User::class.java )
+        sharedPref.save("user", user)
+
+    }
+
 
     // fun String.isUsernameValid(): Boolean {
     //   return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()

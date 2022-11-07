@@ -20,4 +20,14 @@ class UsersProvider {
     fun register(user: User): Call<ResponseHttp>? {
         return usersRoutes?.register(user)
     }
+
+    fun login(username: String, password: String): Call<ResponseHttp>? {
+        return usersRoutes?.login(username, password)
+    }
+
+
+
+
+
+
 }
