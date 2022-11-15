@@ -7,10 +7,11 @@
     tools:context=".activities.activities.client.home.ClientHomeActivity">
 
 
-    <TextView
+    <Button
+        android:id="@+id/btn_logout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Cliente Home"
+        android:text="Cerrar Sesion"
         android:layout_gravity="center"
         />
 

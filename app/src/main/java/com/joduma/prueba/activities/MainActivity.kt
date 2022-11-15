@@ -44,7 +44,13 @@ class MainActivity : AppCompatActivity() {
         imageViewGoToRegister = findViewById(R.id.imageview_got_to_register)
         imageViewGoToRegister?.setOnClickListener { goToRegister() }
         buttonLogin?.setOnClickListener { login() }
+
+
+        getUserFromSession()
+
     }
+
+
 
     private fun login() {
         val username = editTextUsername?.text.toString() // NULL POINTER EXCEPTION
@@ -53,28 +59,28 @@ class MainActivity : AppCompatActivity() {
 
         if (isValidForm(username, password)) {
 
-            usersProvider.login(username, password)?.enqueue(object : Callback <ResponseHttp>{
+            usersProvider.login(username, password)?.enqueue(object: Callback<ResponseHttp>{
                 override fun onResponse(call: Call<ResponseHttp>, response: Response<ResponseHttp>
                 ) {
-                    Log.d("MainActivity", "Response: ${response.body()}")
+                    Log.d("MainActivity", "Response : ${response.body()}")
 
-                    if (response.body()?.issuccess == true){
-                        Toast.makeText(this@MainActivity, response.body()?.message, Toast.LENGTH_LONG).show()
+                    if(response.body()?.isSuccess == true){
+                        Toast.makeText( this@MainActivity, response.body()?.message, Toast.LENGTH_LONG).show()
                         saveUserInSession(response.body()?.data.toString())
                         goToClientHome()
+
                     }
                     else {
                         Toast.makeText( this@MainActivity, "Los datos no son correctos", Toast.LENGTH_LONG).show()
                     }
 
-
                 }
 
-                override fun onFailure(call: Call<ResponseHttp>, t: Throwable) {
-                    Log.d("MainActivity", "Hubo un error ${t.message}")
-                    Toast.makeText(this@MainActivity, "Hubo un error ${t.message}",Toast.LENGTH_LONG).show()
-
+                override fun onFailure(p0: Call<ResponseHttp>, t: Throwable) {
+                    Log.d("MainActivity", "Hubo un error")
+                    Toast.makeText( this@MainActivity, "Hubo un error ", Toast.LENGTH_LONG).show()
                 }
+
 
             })
 
@@ -99,6 +105,19 @@ class MainActivity : AppCompatActivity() {
         val gson = Gson()
         val user = gson.fromJson(data, User::class.java )
         sharedPref.save("user", user)
+
+    }
+
+    private fun getUserFromSession() {
+
+        val sharedPref = SharedPref(this)
+        val gson = Gson()
+
+        if (!sharedPref.getData("user").isNullOrBlank()) {
+            // SI EL USARIO EXISTE EN SESION
+            val user = gson.fromJson(sharedPref.getData("user"), User::class.java)
+            goToClientHome()
+        }
 
     }
 
