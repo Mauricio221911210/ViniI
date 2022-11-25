@@ -9,10 +9,13 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
 import com.joduma.prueba.R
+import com.joduma.prueba.activities.activities.SaveImageActivity
 import com.joduma.prueba.activities.models.ResponseHttp
 import com.joduma.prueba.activities.models.User
 import com.joduma.prueba.activities.providers.UsersProvider
+import com.joduma.prueba.activities.utils.SharedPref
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -94,9 +97,21 @@ class RegisterActivity : AppCompatActivity() {
         }
 
 
+    }
 
 
+    private fun goToClientHome(){
+        val i = Intent(this, SaveImageActivity::class.java)
+        i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK //Eliminar el historial de pantallas
+        startActivity(i)
+    }
 
+    private fun saveUserInSession(data: String){
+
+        val sharedPref = SharedPref(this)
+        val gson = Gson()
+        val user = gson.fromJson(data, User::class.java)
+        sharedPref.save("user", user)
     }
 
     fun String.isEmailValid(): Boolean {

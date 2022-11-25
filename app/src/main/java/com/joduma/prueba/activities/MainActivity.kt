@@ -1,6 +1,8 @@
 package com.joduma.prueba.activities
 
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -10,7 +12,10 @@ import android.widget.ImageView
 import android.widget.Toast
 import com.google.gson.Gson
 import com.joduma.prueba.R
+import com.joduma.prueba.activities.activities.SelectRolesActivity
 import com.joduma.prueba.activities.activities.client.home.ClientHomeActivity
+import com.joduma.prueba.activities.activities.delivery.DeliveryHomeActivity
+import com.joduma.prueba.activities.activities.restaurant.RestaurantHomeActivity
 import com.joduma.prueba.activities.models.ResponseHttp
 import com.joduma.prueba.activities.models.User
 import com.joduma.prueba.activities.providers.UsersProvider
@@ -67,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                     if(response.body()?.isSuccess == true){
                         Toast.makeText( this@MainActivity, response.body()?.message, Toast.LENGTH_LONG).show()
                         saveUserInSession(response.body()?.data.toString())
-                        goToClientHome()
+
 
                     }
                     else {
@@ -94,8 +99,28 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "El password es: $password")*/
     }
 
-    private fun goToClientHome(){
+    private fun goToClientHome() {
         val i = Intent(this, ClientHomeActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK //Eliminar Historial de pantallas
+        startActivity(i)
+    }
+
+    private fun goToRestaurantHome() {
+        val i = Intent(this, RestaurantHomeActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK //Eliminar Historial de pantallas
+        startActivity(i)
+    }
+
+    private fun goToDeliveryHome() {
+        val i = Intent(this, DeliveryHomeActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK //Eliminar Historial de pantallas
+        startActivity(i)
+    }
+
+
+    private fun goToSelectRol() {
+        val i = Intent(this, SelectRolesActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK //Eliminar Historial de pantallas
         startActivity(i)
     }
 
@@ -106,7 +131,17 @@ class MainActivity : AppCompatActivity() {
         val user = gson.fromJson(data, User::class.java )
         sharedPref.save("user", user)
 
+
+        if(user.role_id?.size!! >1) {
+            goToSelectRol()
+
+        }
+        else{
+            goToClientHome()
+        }
+
     }
+
 
     private fun getUserFromSession() {
 
@@ -116,7 +151,25 @@ class MainActivity : AppCompatActivity() {
         if (!sharedPref.getData("user").isNullOrBlank()) {
             // SI EL USARIO EXISTE EN SESION
             val user = gson.fromJson(sharedPref.getData("user"), User::class.java)
-            goToClientHome()
+
+            if (!sharedPref.getData("rol").isNullOrBlank()) {
+                // SI EL USUARIO SELECCIONO EL ROL
+                val rol = sharedPref.getData("rol")?.replace("\"", "" )
+                Log.d("MainActivity", "ROL $rol")
+
+                if (rol == "admin") {
+                    goToClientHome()
+                } else if (rol == "supervisor") {
+                    goToRestaurantHome()
+                } else if (rol == "vendedor"){
+                    goToDeliveryHome()
+                }
+
+            }
+
+            else {
+                goToClientHome()
+            }
         }
 
     }
